@@ -1,0 +1,2078 @@
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cadastro Educacional</title>
+    <script src="https://kit.fontawesome.com/a7d12f962b.js" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #10b981;
+            --error: #ef4444;
+            --light: #f8fafc;
+            --border: #e2e8f0;
+            --text: #1e293b;
+        }
+
+        /* Section icons */
+        h2 i.fa-school,
+        h2 i.fa-user-graduate,
+        h2 i.fa-chalkboard-teacher {
+            background: linear-gradient(45deg, #3b82f6, #2563eb);
+            padding: 10px;
+            border-radius: 50%;
+            color: white;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.5);
+            width: 36px;
+            height: 36px;
+            text-align: center;
+            line-height: 36px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: var(--text);
+            line-height: 1.6;
+            padding: 1rem;
+        }
+
+        .page-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: #1e293b;
+            color: #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            position: fixed;
+            height: 100%;
+            z-index: 1100;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #334155;
+            text-align: center;
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            padding: 0;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+        }
+        
+        .sidebar-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+        
+        .sidebar-nav .nav-item a {
+            display: block;
+            padding: 0.9rem 1.5rem;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .sidebar-nav .nav-item a:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .sidebar-nav .nav-item.active > a {
+            background: var(--primary);
+            color: white;
+            font-weight: 500;
+        }
+        
+        .submenu {
+            background: #111827;
+            padding-left: 1rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .nav-item.has-submenu.open > .submenu {
+            max-height: 200px; /* Adjust as needed */
+        }
+        
+        .submenu li a {
+            padding-left: 2.5rem;
+        }
+        
+        .submenu li.active > a {
+             color: var(--secondary);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 1rem;
+            background-color: #f1f5f9;
+            margin-left: 260px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        /* NEW TABLE FORM STYLES */
+        .creation-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .creation-table th, .creation-table td {
+            border: 1px solid var(--border);
+            padding: 8px;
+            text-align: left;
+        }
+        .creation-table th {
+            background-color: #f8fafc;
+        }
+        .creation-table input, .creation-table select {
+            width: 100%;
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 150px; /* Adicionado para evitar que os campos fiquem muito pequenos */
+        }
+        .add-row-btn {
+            background: #d1fae5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .add-row-btn:hover {
+            background-color: #a7f3d0;
+            transform: scale(1.1);
+        }
+        
+        .hamburger-menu {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1200;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+                box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+            }
+            .main-content {
+                margin-left: 0;
+                padding-top: 60px; /* Space for hamburger */
+            }
+            .hamburger-menu {
+                display: block;
+            }
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.04);
+            padding: 2.2rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #e2ecfe;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .form-container:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.08), 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 6px;
+            width: 100%;
+            background: linear-gradient(90deg, #2563eb, #0891b2);
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            padding-bottom: 0.25rem;
+            margin-bottom: 1.8rem;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        .required::after {
+            content: '*';
+            color: var(--error);
+            margin-left: 4px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-top: 0.5rem;
+        }
+
+        input, select {
+            border-radius: 10px;
+            padding: 1rem 1rem 1rem 3.3rem;
+            font-size: 1.02rem;
+            transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+            border: 2px solid #e2e8f0;
+            width: 100%;
+        }
+        
+        input:not(:placeholder-shown, [type="tel"]), select:valid {
+            border-color: #c7d2fe;
+            background-color: #f8fafc;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        input.valid {
+            border-color: var(--secondary);
+        }
+
+        input.invalid {
+            border-color: var(--error);
+        }
+
+        .form-icon {
+            width: 22px;
+            font-size: 1.1rem;
+            color: #64748b;
+            z-index: 10;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1.4rem;
+            margin-top: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .form-row > .form-group {
+            flex: 1 1 230px;
+        }
+
+        .availability-message {
+            font-weight: 500;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-top: 8px;
+            display: inline-block;
+            background-color: #f8fafc;
+        }
+
+        .available {
+            color: var(--secondary);
+        }
+
+        .taken {
+            color: var(--error);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 1.1rem 2.2rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 3px 8px rgba(37, 99, 235, 0.15);
+            will-change: transform;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 5px 12px rgba(37, 99, 235, 0.25);
+        }
+
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.5rem;
+        }
+
+        /* Animation for dropdown and feedback */
+        .form-row .form-group, 
+        .form-group:not(:first-child) {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 1.7rem;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 1rem;
+                margin-top: 0;
+            }
+            
+            h2 {
+                font-size: 1.45rem;
+            }
+            
+            input, select {
+                padding: 0.85rem 1rem 0.85rem 2.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 1.4rem 1.2rem;
+            }
+            
+            h2 {
+                font-size: 1.4rem;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            input, select {
+                padding: 0.92rem 0.92rem 0.92rem 3rem;
+            }
+        }
+
+        /* NEW STYLES FOR SEARCH AND FILTERS */
+        .search-container {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.04);
+            padding: 1.8rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+            border: 1px solid #e2ecfe;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 16px;
+            justify-content: flex-start;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .results-header h2 {
+            margin-bottom: 0;
+            border-bottom: none;
+        }
+
+        .filters-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filters-row > div {
+            flex: 1 1 230px;
+            min-width: 200px;
+        }
+
+        .datatable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.2rem;
+        }
+
+        .datatable th {
+            background: #f1f5f9;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+            cursor: pointer;
+        }
+
+        .datatable th.escola-projeto {
+            min-width: 200px; /* Give more space to this column */
+        }
+
+        .datatable td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .datatable tr:last-child td {
+            border-bottom: none;
+        }
+
+        .datatable tr:hover {
+            background: #f8fafc;
+        }
+
+        .data-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            width: auto;
+            height: auto;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .action-btn:hover {
+            background: #f1f5f9;
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeInModal 0.3s ease;
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 2.5rem;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 850px;
+            border-radius: 14px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+            animation: slideInFromTop 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            padding: 0;
+            border: none;
+            font-size: 1.8rem;
+        }
+
+        .modal-body {
+            max-height: 65vh;
+            overflow-y: auto;
+            padding-right: 1rem;
+        }
+
+        /* Styles for Edit Forms in Modal */
+        .edit-form .form-row {
+            display: flex;
+            gap: 1.4rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.2rem;
+        }
+
+        .edit-form .form-group {
+            flex: 1 1 250px; /* Adjust basis */
+            margin-bottom: 0;
+        }
+        
+        .edit-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        .edit-form input,
+        .edit-form select {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-size: 1rem;
+        }
+
+        .edit-form input:focus,
+        .edit-form select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        .modal-footer {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            text-align: right;
+        }
+
+        .modal-section {
+            margin-bottom: 2rem;
+        }
+
+        .modal-section h3 {
+            font-size: 1.25rem;
+            color: var(--primary-dark);
+            border-bottom: 2px solid #eef2ff;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .info-card {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .info-card .label {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-card .value {
+            font-size: 1.05rem;
+            font-weight: 500;
+        }
+
+        .modal-list-item {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 0.8rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        
+        .modal-table th, .modal-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-table th {
+            background-color: #f1f5f9;
+        }
+
+        .close-btn {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #333;
+        }
+
+        /* Export Modal Specific Styles */
+        #export-options {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* NEW TAG & PAGINATION STYLES */
+        .tag {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: capitalize;
+            display: inline-block;
+            line-height: 1.5;
+        }
+
+        .tipo-escola { background-color: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
+        .tipo-aluno { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .tipo-professor { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+        .status-ativo { background-color: #dcfce7; color: #166534; }
+        .status-inativo { background-color: #fee2e2; color: #991b1b; }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+            gap: 0.5rem;
+        }
+
+        .page-btn {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px 14px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <button class="hamburger-menu"><i class="fas fa-bars"></i></button>
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>GUClick</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item active" data-target="busca-filtro-content"><a href="#"><i class="fas fa-search"></i> Busca e Filtro</a></li>
+                    <li class="nav-item" data-target="exportar-content"><a href="#"><i class="fas fa-file-export"></i> Exportar Listas</a></li>
+                    <li class="nav-item has-submenu">
+                        <a href="#"><i class="fas fa-plus-circle"></i> Criar e Adicionar</a>
+                        <ul class="submenu">
+                            <li class="nav-item" data-target="criar-projeto-content"><a href="#">Criar Projeto</a></li>
+                            <li class="nav-item" data-target="criar-escola-content"><a href="#">Criar Escola</a></li>
+                            <li class="nav-item" data-target="criar-usuario-content"><a href="#">Criar Usuário</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div id="busca-filtro-content" class="content-section active">
+                <div class="container">
+                    <!-- NEW SEARCH AND FILTER SECTION -->
+                    <div class="search-container">
+                        <div class="results-header">
+                            <h2><i class="fas fa-filter"></i> Busca e Filtro</h2>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div>
+                                <label for="search-input">Buscar</label>
+                                <input type="text" id="search-input" placeholder="Digite para pesquisar...">
+                            </div>
+
+                            <div>
+                                <label for="user-type-filter">Usuário</label>
+                                <select id="user-type-filter" multiple="multiple" style="width: 100%;">
+                                    <option value="student">Aluno</option>
+                                    <option value="teacher">Professor</option>
+                                    <option value="director">Diretor</option>
+                                    <option value="coordinator">Coordenador</option>
+                                    <option value="vice-director">Vice-diretor</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="school-filter">Escola</label>
+                                <select id="school-filter" multiple="multiple" style="width: 100%;">
+                                    <!-- Populated by JS -->
+                                </select>
+                            </div>
+                       
+                            <div>
+                                <label for="class-filter">Turma</label>
+                                <select id="class-filter" multiple="multiple" style="width: 100%;">
+                                    <!-- Populated by JS -->
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="project-filter">Projeto</label>
+                                <select id="project-filter" multiple="multiple" style="width: 100%;">
+                                    <option value="Projeto Educar">Projeto Educar</option>
+                                    <option value="Projeto Aprender">Projeto Aprender</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="status-filter">Status</label>
+                                <select id="status-filter" multiple="multiple" style="width: 100%;">
+                                    <option value="active" selected>Ativo</option>
+                                    <option value="inactive">Inativo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="button-group">
+                            <button class="btn" id="apply-filters-btn"><i class="fas fa-filter"></i> Aplicar Filtros</button>
+                            <button class="btn" style="background: #f1f5f9; color: #64748b;" id="reset-filters">Limpar Filtros</button>
+                        </div>
+                    </div>
+                    
+                    <div class="search-container">
+                        <div class="results-header">
+                            <h2><i class="fas fa-table"></i> Resultados</h2>
+                            <button class="btn" id="export-results-btn" title="Exportar lista em diferentes formatos"><i class="fas fa-download"></i> Exportar Lista</button>
+                        </div>
+                        
+                        <table class="datatable">
+                            <thead>
+                                <tr>
+                                    <th>ID <i class="fas fa-sort"></i></th>
+                                    <th>Nome <i class="fas fa-sort"></i></th>
+                                    <th>Tipo</th>
+                                    <th class="escola-projeto">Escola/Projeto</th>
+                                    <th>Status</th>
+                                    <th>Turma</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Table body will be populated dynamically by JavaScript -->
+                            </tbody>
+                        </table>
+                        
+                        <div class="pagination">
+                            <button class="page-btn">◀</button>
+                            <button class="page-btn active">1</button>
+                            <button class="page-btn">2</button>
+                            <button class="page-btn">3</button>
+                            <button class="page-btn">▶</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="exportar-content" class="content-section">
+                 <div class="container">
+                    <div class="form-container">
+                        <h2><i class="fas fa-file-export"></i> Exportar Listas</h2>
+                        <div class="form-group">
+                            <label for="export-school-select" class="required">Selecione uma ou mais escolas</label>
+                            <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1rem;">Selecione as escolas das quais você deseja exportar as listas de usuários (alunos e professores).</p>
+                            <select id="export-school-select" multiple="multiple" style="width: 100%;"></select>
+                        </div>
+
+                        <div id="export-options">
+                            <button id="export-pdf-btn" class="btn"><i class="fas fa-file-pdf"></i> Exportar para PDF</button>
+                            <button id="export-excel-btn" class="btn" style="background: var(--secondary);"><i class="fas fa-file-excel"></i> Exportar para Planilha</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="criar-projeto-content" class="content-section">
+                 <div class="container">
+                    <div class="form-container">
+                        <h2><i class="fas fa-folder-plus"></i> Criar Projeto(s)</h2>
+                        <form id="create-project-form">
+                            <table class="creation-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome do projeto</th>
+                                        <th>Estado</th>
+                                        <th>Código CNPJ</th>
+                                        <th>Nome do Responsável</th>
+                                        <th>Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="project-table-body">
+                                    <tr>
+                                        <td><input type="text" required style="min-width: 200px;"></td>
+                                        <td><input type="text" required style="min-width: 100px;"></td>
+                                        <td><input type="text" required style="min-width: 180px;"></td>
+                                        <td><input type="text" required style="min-width: 200px;"></td>
+                                        <td><button type="button" class="add-row-btn" data-table="project-table-body" title="Adicionar linha"><i class="fas fa-plus"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                             <button type="submit" class="btn" style="margin-top: 1.5rem;"><i class="fas fa-save"></i> Salvar Projetos</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div id="criar-escola-content" class="content-section">
+                <div class="container">
+                    <div class="form-container">
+                        <h2>Criar Escola(s)</h2>
+                        <form id="create-school-form">
+                            <table class="creation-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome da escola</th>
+                                        <th>Código INEP</th>
+                                        <th>Projetos</th>
+                                        <th>Endereço</th>
+                                        <th>Telefone</th>
+                                        <th>Modalidade de Ensino</th>
+                                        <th>Série(s)</th>
+                                        <th>Disciplinas</th>
+                                        <th>Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="school-table-body">
+                                    <tr>
+                                        <td><input type="text" required></td>
+                                        <td><input type="text" required></td>
+                                        <td>
+                                            <select class="select2-project-school" multiple="multiple" required style="width:100%">
+                                                <option value="1">Projeto Educar</option>
+                                                <option value="2">Projeto Aprender</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text"></td>
+                                        <td><input type="tel"></td>
+                                        <td><input type="text" placeholder="Ex: Ens. Médio"></td>
+                                        <td><input type="text" placeholder="Ex: 1º, 2º"></td>
+                                        <td>
+                                            <select class="select2-disciplinas" multiple="multiple" required style="width:100%">
+                                                <option>Português</option>
+                                                <option>Matemática</option>
+                                                <option>Ciências</option>
+                                                <option>História</option>
+                                                <option>Geografia</option>
+                                                <option>Física</option>
+                                                <option>Química</option>
+                                                <option>Biologia</option>
+                                                <option>Artes</option>
+                                                <option>Educação Física</option>
+                                            </select>
+                                        </td>
+                                        <td><button type="button" class="add-row-btn" data-table="school-table-body" title="Adicionar linha"><i class="fas fa-plus"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                             <button type="submit" class="btn" style="margin-top: 1.5rem;"><i class="fas fa-save"></i> Salvar Escolas</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div id="criar-usuario-content" class="content-section">
+                <div class="container">
+                    <div class="form-container">
+                        <h2><i class="fas fa-user-plus"></i> Criar Usuário(s)</h2>
+                        <form id="create-user-form">
+                            <table class="creation-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>CPF</th>
+                                        <th>Tipo</th>
+                                        <th>Projeto</th>
+                                        <th>Escola</th>
+                                        <th>Etapa Ensino</th>
+                                        <th>Série</th>
+                                        <th>Turma</th>
+                                        <th>Matrícula</th>
+                                        <th>Email</th>
+                                        <th>Login</th>
+                                        <th>Senha</th>
+                                        <th>Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="user-table-body">
+                                    <tr>
+                                        <td><input type="text" required></td>
+                                        <td><input type="text" placeholder="000.000.000-00"></td>
+                                        <td>
+                                            <select required>
+                                                <option value="" disabled selected>Selecione</option>
+                                                <option value="student">Aluno</option>
+                                                <option value="teacher">Professor</option>
+                                                <option value="gestor_diretor">Gestor (Diretor)</option>
+                                                <option value="gestor_vice">Gestor (Vice-Diretor)</option>
+                                                <option value="gestor_coord">Gestor (Coordenador)</option>
+                                            </select>
+                                        </td>
+                                        <td><select class="select2-project" required style="width:100%"><option></option><option value="1">Projeto Educar</option><option value="2">Projeto Aprender</option></select></td>
+                                        <td><select class="select2-school" required disabled style="width:100%"><option></option></select></td>
+                                        <td><select class="select2-etapa" required style="width:100%"><option></option><option value="medio">Ensino Médio</option><option value="fund-finais">Ens. Fund. Anos Finais</option><option value="fund-iniciais">Ens. Fund. Anos Iniciais</option><option value="infantil">Educação Infantil</option><option value="eja">EJA</option></select></td>
+                                        <td><select class="select2-serie" required style="width:100%"><option></option><option value="1">1º Ano</option><option value="2">2º Ano</option><option value="3">3º Ano</option></select></td>
+                                        <td><input type="text"></td>
+                                        <td><input type="text"></td>
+                                        <td><input type="email" required></td>
+                                        <td><input type="text" placeholder="Opcional"></td>
+                                        <td><input type="password" placeholder="Opcional"></td>
+                                        <td><button type="button" class="add-row-btn" data-table="user-table-body" title="Adicionar linha"><i class="fas fa-plus"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <button type="submit" class="btn" style="margin-top: 1.5rem;"><i class="fas fa-save"></i> Salvar Usuários</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Export Modal Structure -->
+    <div id="export-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="export-modal-title">Exportar Lista</h2>
+                <span class="close-btn export-close-btn">&times;</span>
+            </div>
+            <div class="modal-body export-modal-body" id="export-modal-body">
+                <div class="form-group">
+                    <label>Selecione o formato:</label>
+                    <div class="radio-group">
+                        <input type="radio" id="export-format-excel" name="export-format" value="excel" checked>
+                        <label for="export-format-excel"><i class="fas fa-file-excel"></i> Excel (.xlsx)</label>
+                        
+                        <input type="radio" id="export-format-pdf" name="export-format" value="pdf">
+                        <label for="export-format-pdf"><i class="fas fa-file-pdf"></i> PDF (.pdf)</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Escopo da exportação:</label>
+                    <div class="radio-group">
+                        <input type="radio" id="export-scope-visible" name="export-scope" value="visible" checked>
+                        <label for="export-scope-visible"><i class="fas fa-eye"></i> Exportar dados visíveis</label>
+                        
+                        <input type="radio" id="export-scope-all" name="export-scope" value="all">
+                        <label for="export-scope-all"><i class="fas fa-database"></i> Exportar todos os dados</label>
+                    </div>
+                </div>
+                <div id="export-loader" class="loader"></div>
+            </div>
+            <div class="modal-footer" id="export-modal-footer">
+                <button class="btn" style="background: #64748b;" id="export-cancel-btn">Cancelar</button>
+                <button class="btn" id="export-confirm-btn"><i class="fas fa-download"></i> Exportar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Modal Structure -->
+    <div id="details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Detalhes</h2>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Dynamic content will be injected here -->
+            </div>
+            <div class="modal-footer" id="modal-footer">
+                <button class="btn" style="background: #64748b;" id="modal-cancel-btn">Cancelar</button>
+                <button class="btn" id="modal-save-btn"><i class="fas fa-save"></i> Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf-autotable.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Mock data for project details
+        const db = {
+            schools: {
+                "SCH001": {
+                    name: "Escola Municipal A",
+                    inep: "12345678",
+                    address: "Rua das Flores, 123",
+                    phone: "(11) 98765-4321",
+                    social: "@escola_municipal_a",
+                    modalidade: "Ensino Fundamental",
+                    series: "6º ao 9º Ano",
+                    disciplinas: "Português, Matemática, Ciências, História, Geografia",
+                    classes: [
+                        { name: "Turma 6A", active: 28, inactive: 2 },
+                        { name: "Turma 7B", active: 31, inactive: 0 },
+                        { name: "Turma 8A", active: 25, inactive: 5 },
+                    ],
+                    teachers: ["Carlos Santos", "Ana Pereira", "João Costa"]
+                },
+                 "SCH002": {
+                    name: "Escola Estadual B",
+                    inep: "87654321",
+                    address: "Avenida Principal, 456",
+                    phone: "(21) 55555-1234",
+                    social: "@escola_b_oficial",
+                    modalidade: "Ensino Médio",
+                    series: "1º ao 3º Ano",
+                    disciplinas: "Todas do BNCC",
+                    classes: [
+                        { name: "Turma 1A", active: 35, inactive: 1 },
+                        { name: "Turma 2B", active: 33, inactive: 2 },
+                    ],
+                    teachers: ["Ana Costa"]
+                }
+            },
+            students: {
+                "STU045": {
+                    name: "Maria Oliveira",
+                    cpf: "111.222.333-44",
+                    login: "maria.oliveira",
+                    email: "maria.oliveira@email.com",
+                    registration: "MAT2023045",
+                    project: "Projeto Educar",
+                    school: "Escola Municipal A",
+                    etapa: "Ens. Fund. Anos Finais",
+                    serie: "6º Ano",
+                    turma: "Turma 6A",
+                    grades: [
+                        { subject: "Matemática", grade: 8.5 },
+                        { subject: "Português", grade: 9.0 },
+                        { subject: "Ciências", grade: 7.8 },
+                    ],
+                    activity: [
+                        { page: "Biblioteca Virtual", date: "2023-05-14 10:22", duration: "45 min" },
+                        { page: "Fórum de Dúvidas", date: "2023-05-14 09:15", duration: "20 min" },
+                        { page: "Avaliação de Matemática", date: "2023-05-12 14:00", duration: "55 min" },
+                    ]
+                },
+                 "STU046": {
+                    name: "João Pereira",
+                    cpf: "222.333.444-55",
+                    login: "joao.pereira",
+                    email: "joao.p@email.com",
+                    registration: "MAT2023046",
+                    project: "Projeto Aprender",
+                    school: "Escola Estadual B",
+                    etapa: "Ensino Médio",
+                    serie: "1º Ano",
+                    turma: "Turma 7B", // Note: mock data inconsistency, but ok for demo
+                    grades: [],
+                    activity: []
+                },
+                 "STU047": {
+                    name: "Pedro Martins",
+                    cpf: "333.444.555-66",
+                    login: "pedro.martins",
+                    email: "pedro.m@email.com",
+                    registration: "MAT2023047",
+                    project: "Projeto Educar",
+                    school: "Escola Municipal A",
+                    etapa: "Ens. Fund. Anos Finais",
+                    serie: "6º Ano",
+                    turma: "Turma 6A",
+                    grades: [],
+                    activity: []
+                }
+            },
+            teachers: {
+                "TCH022": {
+                    name: "Carlos Santos",
+                    type: "teacher", // professor, gestor_diretor etc.
+                    cpf: "444.555.666-77",
+                    login: "carlos.santos",
+                    email: "carlos.santos@educa.com",
+                    registration: "FUNC2021022",
+                    phone: "(11) 91234-5678",
+                    project: "Projeto Aprender",
+                    school: "Escola Municipal A",
+                    disciplinas: "Matemática, Física",
+                    turmas: "Turma 6A, Turma 8A, Turma 9B",
+                    subjects: ["Matemática", "Física"],
+                    classes: ["Turma 6A", "Turma 8A", "Turma 9B"],
+                    activity: [
+                        { page: "Plano de Aula", date: "2023-05-15 08:10", duration: "60 min" },
+                        { page: "Lançamento de Notas", date: "2023-05-14 11:30", duration: "75 min" },
+                        { page: "Fórum da Turma 8A", date: "2023-05-13 16:45", duration: "30 min" },
+                    ]
+                },
+                "TCH023": {
+                    name: "Ana Costa",
+                    type: "teacher",
+                    cpf: "555.666.777-88",
+                    login: "ana.costa",
+                    email: "ana.costa@educa.com",
+                    registration: "FUNC2022023",
+                    phone: "(21) 98765-4321",
+                    project: "Projeto Educar",
+                    school: "Escola Estadual B",
+                    disciplinas: "Português, Literatura",
+                    turmas: "9º C, 1º A",
+                    subjects: ["Português", "Literatura"],
+                    classes: ["9º C", "1º A"],
+                    activity: []
+                },
+                 "TCH024": {
+                    name: "Ricardo Mendes",
+                    type: "director",
+                    cpf: "888.999.000-11",
+                    login: "ricardo.mendes",
+                    email: "ricardo.mendes@educa.com",
+                    registration: "FUNC2020001",
+                    phone: "(11) 99999-0000",
+                    project: "Projeto Educar",
+                    school: "Escola Municipal A",
+                    disciplinas: "",
+                    turmas: "Todas",
+                    subjects: [],
+                    classes: [],
+                    activity: []
+                }
+            }
+        };
+
+        const mockDataTable = [
+            { id: 'SCH001', name: 'Escola Municipal A', type: 'school', project: 'Projeto Educar', status: 'active', turma: 'Todas' },
+            { id: 'STU045', name: 'Maria Oliveira', type: 'student', project: 'Projeto Educar', status: 'active', turma: 'Turma 6A' },
+            { id: 'TCH022', name: 'Carlos Santos', type: 'teacher', project: 'Projeto Aprender', status: 'inactive', turma: 'Turma 8A' },
+            { id: 'SCH002', name: 'Escola Estadual B', type: 'school', project: 'Projeto Aprender', status: 'active', turma: 'Todas' },
+            { id: 'STU046', name: 'João Pereira', type: 'student', project: 'Projeto Aprender', status: 'inactive', turma: 'Turma 7B' },
+            { id: 'TCH023', name: 'Ana Costa', type: 'teacher', project: 'Projeto Educar', status: 'active', turma: '9º C' },
+            { id: 'STU047', name: 'Pedro Martins', type: 'student', project: 'Projeto Educar', status: 'active', turma: 'Turma 6A' },
+            { id: 'TCH024', name: 'Ricardo Mendes', type: 'director', project: 'Projeto Educar', status: 'active', turma: 'N/A' }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar and navigation logic
+            const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+            const contentSections = document.querySelectorAll('.main-content .content-section');
+            const submenuToggles = document.querySelectorAll('.has-submenu > a');
+            const hamburger = document.querySelector('.hamburger-menu');
+            const sidebar = document.querySelector('.sidebar');
+
+            hamburger.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+            });
+
+            submenuToggles.forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    toggle.parentElement.classList.toggle('open');
+                });
+            });
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const targetId = this.dataset.target;
+                    
+                    if (!targetId) return;
+
+                    // Deactivate all content
+                    contentSections.forEach(section => section.classList.remove('active'));
+                    
+                    // Deactivate all nav items
+                    navItems.forEach(nav => nav.classList.remove('active'));
+
+                    // Activate target content and nav item
+                    const targetSection = document.getElementById(targetId);
+                    if (targetSection) {
+                        targetSection.classList.add('active');
+                        this.classList.add('active');
+
+                        // Handle parent menu item state
+                        const parentMenu = this.closest('.has-submenu');
+                        if (parentMenu) {
+                           parentMenu.classList.add('active');
+                           if(!parentMenu.classList.contains('open')) {
+                              parentMenu.classList.add('open');
+                           }
+                        }
+
+                        if (sidebar.classList.contains('open')) {
+                            sidebar.classList.remove('open');
+                        }
+                    }
+                });
+            });
+
+            // --- EXPORT LOGIC ---
+            const exportSchoolSelect = $('#export-school-select');
+            const exportPdfBtn = document.getElementById('export-pdf-btn');
+            const exportExcelBtn = document.getElementById('export-excel-btn');
+
+            // Populate school select for export
+            const schoolOptions = Object.keys(db.schools).map(key => {
+                return { id: key, text: db.schools[key].name };
+            });
+
+            exportSchoolSelect.select2({
+                data: schoolOptions,
+                placeholder: 'Selecione as escolas',
+                allowClear: true
+            });
+
+            function getSelectedSchoolData() {
+                const selectedSchoolIds = exportSchoolSelect.val();
+                if (!selectedSchoolIds || selectedSchoolIds.length === 0) {
+                    alert('Por favor, selecione pelo menos uma escola.');
+                    return null;
+                }
+
+                return selectedSchoolIds.map(schoolId => {
+                    const schoolInfo = db.schools[schoolId];
+                    const schoolName = schoolInfo.name;
+
+                    const users = mockDataTable.filter(item => 
+                        (item.type === 'student' || item.type === 'teacher') &&
+                        (db.students[item.id]?.school === schoolName || db.teachers[item.id]?.school === schoolName)
+                    );
+                    
+                    return {
+                        id: schoolId,
+                        name: schoolName,
+                        users: users
+                    };
+                });
+            }
+
+            exportPdfBtn.addEventListener('click', () => {
+                const schoolData = getSelectedSchoolData();
+                if (!schoolData) return;
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                schoolData.forEach((school, index) => {
+                    if (index > 0) {
+                        doc.addPage();
+                    }
+                    doc.setFontSize(16);
+                    doc.text(`Lista de Usuários: ${school.name}`, 14, 22);
+
+                    const tableData = school.users.map(user => [
+                        user.id,
+                        user.name,
+                        user.type === 'student' ? 'Aluno' : 'Professor',
+                        user.turma,
+                        user.status === 'active' ? 'Ativo' : 'Inativo'
+                    ]);
+
+                    doc.autoTable({
+                        startY: 30,
+                        head: [['ID', 'Nome', 'Tipo', 'Turma', 'Status']],
+                        body: tableData
+                    });
+                });
+                
+                doc.save('exportacao_escolas.pdf');
+            });
+
+            exportExcelBtn.addEventListener('click', () => {
+                const schoolData = getSelectedSchoolData();
+                if (!schoolData) return;
+
+                const wb = XLSX.utils.book_new();
+
+                schoolData.forEach(school => {
+                    const worksheetData = school.users.map(user => ({
+                        'ID': user.id,
+                        'Nome': user.name,
+                        'Tipo': user.type === 'student' ? 'Aluno' : 'Professor',
+                        'Projeto': user.project,
+                        'Status': user.status === 'active' ? 'Ativo' : 'Inativo',
+                        'Turma': user.turma
+                    }));
+                    
+                    const ws = XLSX.utils.json_to_sheet(worksheetData);
+                    // Sanitize sheet name
+                    const sheetName = school.name.replace(/[\\/*?:"<>|]/g, '').substring(0, 31);
+                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                });
+
+                XLSX.writeFile(wb, 'exportacao_escolas.xlsx');
+            });
+
+            // --- SEARCH & FILTER V2 LOGIC ---
+            function initFilterSelect2() {
+                $('#user-type-filter').select2({ placeholder: "Todos Usuários" });
+                $('#project-filter').select2({ placeholder: "Todos Projetos" });
+                $('#status-filter').select2({ placeholder: "Todos Status" });
+
+                const schoolOptions = Object.values(db.schools).map(s => ({ id: s.name, text: s.name }));
+                $('#school-filter').select2({
+                    placeholder: "Todas as Escolas",
+                    data: schoolOptions
+                });
+                
+                const allClasses = mockDataTable
+                    .filter(item => item.turma && item.turma !== 'N/A' && item.turma !== 'Todas')
+                    .map(item => item.turma);
+                const uniqueClasses = [...new Set(allClasses)].map(c => ({ id: c, text: c }));
+                $('#class-filter').select2({
+                    placeholder: "Todas as Turmas",
+                    data: uniqueClasses
+                });
+
+                // Clear default selections for placeholder to show
+                $('#user-type-filter, #project-filter, #school-filter, #class-filter').val(null).trigger('change');
+                // Set default for status
+                $('#status-filter').val('active').trigger('change');
+            }
+
+            // --- FILTERING AND TABLE LOGIC ---
+            const datatableBody = document.querySelector('.datatable tbody');
+            const searchInput = document.getElementById('search-input');
+            const userTypeFilter = $('#user-type-filter');
+            const schoolFilter = $('#school-filter');
+            const classFilter = $('#class-filter');
+            const projectFilter = $('#project-filter');
+            const statusFilter = $('#status-filter');
+            const applyFiltersBtn = document.getElementById('apply-filters-btn');
+            const resetFiltersBtn = document.getElementById('reset-filters');
+
+            let currentFilteredData = [];
+
+            function renderTable(data) {
+                datatableBody.innerHTML = '';
+                if (data.length === 0) {
+                    datatableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 2rem;">Nenhum resultado encontrado.</td></tr>';
+                    return;
+                }
+
+                data.forEach(item => {
+                    const typeTag = {
+                        school: '<span class="tag tipo-escola">Escola</span>',
+                        student: '<span class="tag tipo-aluno">Aluno</span>',
+                        teacher: '<span class="tag tipo-professor">Professor</span>',
+                        director: '<span class="tag tipo-professor">Diretor</span>',
+                        coordinator: '<span class="tag tipo-professor">Coordenador</span>',
+                        'vice-director': '<span class="tag tipo-professor">Vice-Diretor</span>'
+                    }[item.type] || '';
+
+                    const statusTag = {
+                        active: '<span class="tag status-ativo">Ativo</span>',
+                        inactive: '<span class="tag status-inativo">Inativo</span>'
+                    }[item.status] || '';
+
+                    const actionButtonText = item.status === 'active' ? 'Inativar' : 'Ativar';
+
+                    const turmaDisplay = item.type === 'school' ? 'N/A' : item.turma;
+
+                    let escolaProjetoHtml = '';
+                    if (item.type === 'student') {
+                        const schoolName = db.students[item.id]?.school || 'N/A';
+                        escolaProjetoHtml = `${schoolName} / ${item.project}`;
+                    } else if (item.type === 'teacher' || item.type === 'director') {
+                         const schoolName = db.teachers[item.id]?.school || 'N/A';
+                        escolaProjetoHtml = `${schoolName} / ${item.project}`;
+                    } else if (item.type === 'school') {
+                        escolaProjetoHtml = item.project;
+                    }
+
+                    const row = `
+                        <tr data-type="${item.type}" data-id="${item.id}">
+                            <td>${item.id}</td>
+                            <td>${item.name}</td>
+                            <td>${typeTag}</td>
+                            <td>${escolaProjetoHtml}</td>
+                            <td>${statusTag}</td>
+                            <td>${turmaDisplay}</td>
+                            <td>
+                                <div class="data-actions">
+                                    <button class="action-btn btn-view-more">Ver mais</button>
+                                    <button class="action-btn">Editar</button>
+                                    <button class="action-btn">${actionButtonText}</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    datatableBody.insertAdjacentHTML('beforeend', row);
+                });
+            }
+
+            function filterData() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const userTypes = userTypeFilter.val();
+                const schools = schoolFilter.val();
+                const classes = classFilter.val();
+                const projects = projectFilter.val();
+                const statuses = statusFilter.val();
+
+                const filteredData = mockDataTable.filter(item => {
+                    const nameMatch = item.name.toLowerCase().includes(searchTerm) || item.id.toLowerCase().includes(searchTerm);
+                    
+                    // Filter logic: if filter has values, item must match one of them.
+                    const userTypeMatch = userTypes.length === 0 || userTypes.includes(item.type);
+                    
+                    // For school filter, we need to check the school name from the db for students/teachers
+                    let itemSchoolName = '';
+                    if (item.type === 'school') itemSchoolName = item.name;
+                    else if (item.type === 'student') itemSchoolName = db.students[item.id]?.school || '';
+                    else if (item.type === 'teacher' || item.type === 'director') itemSchoolName = db.teachers[item.id]?.school || '';
+                    const schoolMatch = schools.length === 0 || schools.includes(itemSchoolName);
+
+                    const classMatch = classes.length === 0 || classes.includes(item.turma);
+                    const projectMatch = projects.length === 0 || projects.includes(item.project);
+                    const statusMatch = statuses.length === 0 || statuses.includes(item.status);
+                    
+                    // We don't want to show schools if a user type is selected
+                    if (userTypes.length > 0 && item.type === 'school') {
+                        return false;
+                    }
+
+                    return nameMatch && userTypeMatch && schoolMatch && classMatch && projectMatch && statusMatch;
+                });
+                
+                return filteredData;
+            }
+
+            function filterAndRender() {
+                const data = filterData();
+                currentFilteredData = data;
+                renderTable(data);
+            }
+
+            // Initial render
+            currentFilteredData = mockDataTable; // Initially, all data is "filtered"
+            renderTable(currentFilteredData);
+
+            // Init Select2 for filters
+            initFilterSelect2();
+
+            // Event Listeners for filters
+            applyFiltersBtn.addEventListener('click', filterAndRender);
+            searchInput.addEventListener('input', filterAndRender);
+            
+            // Auto-apply on change
+            $('#user-type-filter, #school-filter, #class-filter, #project-filter, #status-filter').on('change', filterAndRender);
+
+            resetFiltersBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                // Reset select2 fields
+                $('#user-type-filter, #project-filter, #school-filter, #class-filter').val(null).trigger('change');
+                $('#status-filter').val('active').trigger('change'); // Resets to default
+                filterAndRender(); // Re-apply to show the default state
+            });
+
+            // Add row functionality for creation tables
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.add-row-btn')) {
+                    const button = e.target.closest('.add-row-btn');
+                    const rowToClone = button.closest('tr');
+                    const tableBodyId = button.dataset.table;
+                    if (!rowToClone || !tableBodyId) return;
+
+                    const newRow = rowToClone.cloneNode(true);
+                    
+                    // Clear input values in the new row
+                    newRow.querySelectorAll('input, select').forEach(input => {
+                        if (input.tagName === 'SELECT' && !input.classList.contains('select2-hidden-accessible')) {
+                           input.selectedIndex = 0;
+                        } else if (input.type === 'checkbox' || input.type === 'radio') {
+                           input.checked = false;
+                        } else {
+                           input.value = '';
+                        }
+                    });
+
+                     // Destroy and re-init Select2 for the new row
+                    if (tableBodyId === 'user-table-body') {
+                        $(newRow).find('.select2-container').remove();
+                        const selects = $(newRow).find('.select2-project, .select2-school, .select2-etapa, .select2-serie');
+                        selects.removeClass('select2-hidden-accessible').removeAttr('data-select2-id').removeAttr('aria-hidden').removeAttr('tabindex');
+                        
+                        // Clear select2 values
+                        selects.val(null);
+
+                        // Disable school select initially in new row
+                        $(newRow).find('.select2-school').prop('disabled', true);
+                        
+                        initSelect2InRow(newRow);
+
+                        // Trigger change for placeholder to re-appear
+                        selects.trigger('change');
+                    } else if (tableBodyId === 'school-table-body') {
+                        $(newRow).find('.select2-container').remove();
+                        const selects = $(newRow).find('.select2-project-school, .select2-disciplinas');
+                        selects.removeClass('select2-hidden-accessible').removeAttr('data-select2-id').removeAttr('aria-hidden').removeAttr('tabindex');
+                        selects.val(null); // Clear selections
+                        initSelect2ForSchoolRow(newRow);
+                        selects.trigger('change');
+                    }
+
+                    // Insert the new row immediately after the clicked row
+                    rowToClone.after(newRow);
+                }
+            });
+
+            // --- EXPORT RESULTS LOGIC ---
+            const exportModal = document.getElementById('export-modal');
+            const openExportModalBtn = document.getElementById('export-results-btn');
+            const closeExportModalBtn = exportModal.querySelector('.export-close-btn');
+            const cancelExportBtn = document.getElementById('export-cancel-btn');
+            const confirmExportBtn = document.getElementById('export-confirm-btn');
+            const exportLoader = document.getElementById('export-loader');
+            
+            function openExportModal() { exportModal.style.display = 'block'; }
+            function closeExportModal() {
+                 exportModal.style.display = 'none';
+                 exportLoader.style.display = 'none';
+                 confirmExportBtn.disabled = false;
+            }
+
+            openExportModalBtn.addEventListener('click', openExportModal);
+            closeExportModalBtn.addEventListener('click', closeExportModal);
+            cancelExportBtn.addEventListener('click', closeExportModal);
+
+            function getFormattedTimestamp() {
+                const d = new Date();
+                const date = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+                const time = `${d.getHours().toString().padStart(2, '0')}-${d.getMinutes().toString().padStart(2, '0')}`;
+                return `${date}_${time}`;
+            }
+
+            function mapDataForExport(item) {
+                 let typeDisplay = { school: 'Escola', student: 'Aluno', teacher: 'Professor', director: 'Diretor', coordinator: 'Coordenador', 'vice-director': 'Vice-Diretor'}[item.type] || item.type;
+                 let statusDisplay = item.status === 'active' ? 'Ativo' : 'Inativo';
+                 let turmaDisplay = item.type === 'school' ? 'N/A' : item.turma;
+                 let escolaProjetoHtml = '';
+                 if (item.type === 'student') {
+                    const schoolName = db.students[item.id]?.school || 'N/A';
+                    escolaProjetoHtml = `${schoolName} / ${item.project}`;
+                } else if (item.type === 'teacher' || item.type === 'director') {
+                    const schoolName = db.teachers[item.id]?.school || 'N/A';
+                    escolaProjetoHtml = `${schoolName} / ${item.project}`;
+                } else if (item.type === 'school') {
+                    escolaProjetoHtml = item.project;
+                }
+
+                return {
+                    'ID': item.id,
+                    'Nome': item.name,
+                    'Tipo': typeDisplay,
+                    'Escola/Projeto': escolaProjetoHtml,
+                    'Status': statusDisplay,
+                    'Turma': turmaDisplay,
+                };
+            }
+
+            confirmExportBtn.addEventListener('click', () => {
+                exportLoader.style.display = 'block';
+                confirmExportBtn.disabled = true;
+
+                setTimeout(() => { // Simulate processing time
+                    const format = document.querySelector('input[name="export-format"]:checked').value;
+                    const scope = document.querySelector('input[name="export-scope"]:checked').value;
+
+                    const dataToExport = (scope === 'visible' ? currentFilteredData : mockDataTable).map(mapDataForExport);
+                    const filename = `Relatorio_GuClick_${getFormattedTimestamp()}`;
+                    const title = "Relatório GuClick";
+
+                    if (format === 'excel') {
+                        const ws = XLSX.utils.json_to_sheet(dataToExport);
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, 'Resultados');
+                        XLSX.writeFile(wb, `${filename}.xlsx`);
+                    } else if (format === 'pdf') {
+                        const { jsPDF } = window.jspdf;
+                        const doc = new jsPDF();
+                        
+                        doc.setFontSize(18);
+                        doc.text(title, 14, 22);
+                        doc.setFontSize(11);
+                        doc.setTextColor(100);
+                        doc.text(`Exportado em: ${new Date().toLocaleString()}`, 14, 30);
+                        
+                        const tableColumn = Object.keys(dataToExport[0] || {});
+                        const tableRows = dataToExport.map(row => Object.values(row));
+
+                        doc.autoTable({
+                            head: [tableColumn],
+                            body: tableRows,
+                            startY: 35,
+                        });
+                        doc.save(`${filename}.pdf`);
+                    }
+
+                    closeExportModal();
+                }, 500);
+            });
+
+            // Modal elements
+            const modal = document.getElementById('details-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalBody = document.getElementById('modal-body');
+            const modalFooter = document.getElementById('modal-footer');
+            const closeBtn = modal.querySelector('.close-btn');
+
+            function renderSchoolDetails(school) {
+                modalTitle.textContent = school.name;
+                modalBody.innerHTML = `
+                    <div class="modal-section">
+                        <h3><i class="fas fa-info-circle"></i> Informações da Escola</h3>
+                        <div class="info-grid">
+                            <div class="info-card"><div class="label">Código INEP</div><div class="value">${school.inep}</div></div>
+                            <div class="info-card"><div class="label">Endereço</div><div class="value">${school.address}</div></div>
+                            <div class="info-card"><div class="label">Telefone</div><div class="value">${school.phone}</div></div>
+                            <div class="info-card"><div class="label">Rede Social</div><div class="value">${school.social}</div></div>
+                        </div>
+                    </div>
+                    <div class="modal-section">
+                        <h3><i class="fas fa-chalkboard"></i> Turmas</h3>
+                        <div class="info-grid">
+                            ${school.classes.map(c => `
+                                <div class="info-card">
+                                    <div class="label">${c.name}</div>
+                                    <div class="value" style="display: flex; gap: 1rem; align-items: center;">
+                                        <span><i class="fas fa-user-check" style="color:var(--secondary)"></i> ${c.active} Ativos</span>
+                                        <span><i class="fas fa-user-times" style="color:var(--error)"></i> ${c.inactive} Inativos</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                     <div class="modal-section">
+                        <h3><i class="fas fa-chalkboard-teacher"></i> Professores</h3>
+                        <div>
+                            ${school.teachers.map(t => `<div class="modal-list-item">${t}</div>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- EDIT MODAL RENDERING FUNCTIONS ---
+            
+            function renderTeacherEditForm(id) {
+                const teacher = db.teachers[id];
+                if (!teacher) return;
+                modalTitle.textContent = `Editar Professor: ${teacher.name}`;
+                modalBody.innerHTML = `
+                    <form id="edit-teacher-form" class="edit-form">
+                        <div class="form-row">
+                            <div class="form-group"><label for="edit-teacher-name">Nome</label><input type="text" id="edit-teacher-name" value="${teacher.name}" required></div>
+                            <div class="form-group"><label for="edit-teacher-login">Login</label><input type="text" id="edit-teacher-login" value="${teacher.login}" required></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label for="edit-teacher-email">Email</label><input type="email" id="edit-teacher-email" value="${teacher.email}" required></div>
+                            <div class="form-group"><label for="edit-teacher-password">Nova Senha</label><input type="password" id="edit-teacher-password" placeholder="Deixe em branco para não alterar"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label for="edit-teacher-project">Projeto(s)</label><select id="edit-teacher-project" multiple="multiple" style="width: 100%;"></select></div>
+                            <div class="form-group"><label for="edit-teacher-school">Escola(s)</label><select id="edit-teacher-school" multiple="multiple" style="width: 100%;"></select></div>
+                        </div>
+                         <div class="form-row">
+                            <div class="form-group"><label for="edit-teacher-etapa">Etapa(s) de Ensino</label><select id="edit-teacher-etapa" multiple="multiple" style="width: 100%;"></select></div>
+                            <div class="form-group"><label for="edit-teacher-disciplina">Disciplina(s)</label><select id="edit-teacher-disciplina" multiple="multiple" style="width: 100%;"></select></div>
+                        </div>
+                    </form>
+                `;
+                // Mock data for selects
+                $('#edit-teacher-project').select2({ data: [{id: '1', text:'Projeto Educar'}, {id: '2', text:'Projeto Aprender'}], placeholder: "Selecione..." }).val(['1']).trigger('change');
+                $('#edit-teacher-school').select2({ data: [{id: '1', text:'Escola Municipal A'}, {id: '2', text:'Escola Estadual B'}], placeholder: "Selecione..." }).val(['1']).trigger('change');
+                $('#edit-teacher-etapa').select2({ data: [{id: '1', text:'Ensino Médio'}, {id: '2', text:'Ensino Fundamental'}], placeholder: "Selecione..." }).val(['1', '2']).trigger('change');
+                $('#edit-teacher-disciplina').select2({ data: [{id: '1', text:'Matemática'}, {id: '2', text:'Física'}, {id: '3', text:'Português'}], placeholder: "Selecione..." }).val(['1', '2']).trigger('change');
+            }
+
+            function renderStudentEditForm(id) {
+                const student = db.students[id];
+                if (!student) return;
+                modalTitle.textContent = `Editar Aluno: ${student.name}`;
+                 modalBody.innerHTML = `
+                    <form id="edit-student-form" class="edit-form">
+                        <div class="form-row">
+                            <div class="form-group"><label for="edit-student-name">Nome</label><input type="text" id="edit-student-name" value="${student.name}" required></div>
+                            <div class="form-group"><label for="edit-student-login">Login</label><input type="text" id="edit-student-login" value="${student.login}" required></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label for="edit-student-email">Email</label><input type="email" id="edit-student-email" value="${student.email}" required></div>
+                            <div class="form-group"><label for="edit-student-password">Nova Senha</label><input type="password" id="edit-student-password" placeholder="Deixe em branco para não alterar"></div>
+                        </div>
+                        <hr style="margin: 1.5rem 0; border: 1px solid #f1f5f9;">
+                        <div class="form-row">
+                            <div class="form-group"><label for="edit-student-project">Projeto</label><select id="edit-student-project" style="width: 100%;"></select></div>
+                            <div class="form-group"><label for="edit-student-school">Escola</label><select id="edit-student-school" style="width: 100%;"></select></div>
+                        </div>
+                         <div class="form-row">
+                            <div class="form-group"><label for="edit-student-etapa">Etapa de Ensino</label><select id="edit-student-etapa" style="width: 100%;"></select></div>
+                            <div class="form-group"><label for="edit-student-serie">Série</label><select id="edit-student-serie" style="width: 100%;"></select></div>
+                        </div>
+                         <div class="form-row">
+                            <div class="form-group" style="flex-grow: 2;"><label for="edit-student-turma">Turma(s) (máx. 2)</label><select id="edit-student-turma" multiple="multiple" style="width: 100%;"></select></div>
+                        </div>
+                    </form>
+                `;
+                // Mock data for selects
+                $('#edit-student-project').select2({ data: [{id: '1', text:'Projeto Educar'}, {id: '2', text:'Projeto Aprender'}], placeholder: "Selecione...", allowClear: true }).val('1').trigger('change');
+                $('#edit-student-school').select2({ data: [{id: '1', text:'Escola Municipal A'}, {id: '2', text:'Escola Estadual B'}], placeholder: "Selecione...", allowClear: true }).val('1').trigger('change');
+                $('#edit-student-etapa').select2({ data: [{id: '1', text:'Ensino Fundamental'}, {id: '2', text:'Ensino Médio'}], placeholder: "Selecione...", allowClear: true }).val('1').trigger('change');
+                $('#edit-student-serie').select2({ data: [{id: '6', text:'6º Ano'}, {id: '7', text:'7º Ano'}], placeholder: "Selecione...", allowClear: true }).val('6').trigger('change');
+                $('#edit-student-turma').select2({ data: [{id: '1', text:'Turma 6A'}, {id: '2', text:'Turma 6B'}], placeholder: "Selecione...", maximumSelectionLength: 2 }).val(['1']).trigger('change');
+            }
+
+            function renderSchoolEditForm(id) {
+                const school = db.schools[id];
+                if (!school) return;
+                modalTitle.textContent = `Editar Escola: ${school.name}`;
+                modalBody.innerHTML = `
+                    <form id="edit-school-form" class="edit-form">
+                        <div class="form-row">
+                            <div class="form-group" style="flex-grow: 2;"><label for="edit-school-name">Nome da Escola</label><input type="text" id="edit-school-name" value="${school.name}" required></div>
+                            <div class="form-group"><label for="edit-school-inep">Código INEP</label><input type="number" id="edit-school-inep" value="${school.inep}" required></div>
+                        </div>
+                        <div class="form-group"><label for="edit-school-address">Endereço</label><textarea id="edit-school-address" rows="3" style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid #d1d5db;">${school.address}</textarea></div>
+                         <div class="form-row">
+                            <div class="form-group"><label for="edit-school-phone">Telefone</label><input type="tel" id="edit-school-phone" value="${school.phone}"></div>
+                            <div class="form-group"><label for="edit-school-modalidade">Modalidade de Ensino</label><select id="edit-school-modalidade" style="width: 100%;"></select></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label for="edit-school-series">Série(s)</label><select id="edit-school-series" multiple="multiple" style="width: 100%;"></select></div>
+                            <div class="form-group"><label for="edit-school-project">Projeto(s)</label><select id="edit-school-project" multiple="multiple" style="width: 100%;"></select></div>
+                        </div>
+                    </form>
+                `;
+                 // Mock data for selects
+                $('#edit-school-modalidade').select2({ data: [{id: '1', text:'Ensino Fundamental'}, {id: '2', text:'Ensino Médio'}], placeholder: "Selecione...", allowClear: true }).val('1').trigger('change');
+                $('#edit-school-series').select2({ data: [{id: '1', text:'6º Ano'}, {id: '2', text:'7º Ano'}, {id: '3', text:'8º Ano'}, {id: '4', text:'9º Ano'}], placeholder: "Selecione..." }).val(['1', '2', '3', '4']).trigger('change');
+                $('#edit-school-project').select2({ data: [{id: '1', text:'Projeto Educar'}, {id: '2', text:'Projeto Aprender'}], placeholder: "Selecione..." }).val(['1']).trigger('change');
+            }
+
+            // Function to open modal
+            function openModal(mode, type, id) {
+                modalBody.innerHTML = ''; // Clear previous content
+                modalFooter.style.display = 'block';
+                let data;
+
+                if (mode === 'view') {
+                     modalFooter.style.display = 'none'; // No save/cancel for view
+                     if (type === 'school') {
+                        data = db.schools[id];
+                        if(data) renderSchoolDetails(data);
+                    } else if (type === 'student') {
+                        data = db.students[id];
+                        if(data) renderStudentDetails(data);
+                    } else if (type === 'teacher' || type === 'director' || type === 'coordinator' || type === 'vice-director') {
+                        data = db.teachers[id];
+                        if(data) renderTeacherDetails(data);
+                    }
+                } else if (mode === 'edit') {
+                    if (type === 'school') {
+                        renderSchoolEditForm(id);
+                    } else if (type === 'student') {
+                        renderStudentEditForm(id);
+                    } else if (type === 'teacher' || type === 'director' || type === 'coordinator' || type === 'vice-director') {
+                        renderTeacherEditForm(id);
+                    }
+                    data = true; // set data to true to open modal
+                }
+               
+                
+                if (data) {
+                    modal.style.display = 'block';
+                } else {
+                    console.error(`No data found for type: ${type}, id: ${id}`);
+                }
+            }
+
+            // Function to close modal
+            function closeModal() {
+                modal.style.display = 'none';
+            }
+            
+            // Event listeners for modal
+            closeBtn.addEventListener('click', closeModal);
+            document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
+            window.addEventListener('click', function(event) {
+                if (event.target == modal || event.target == exportModal) {
+                    closeModal();
+                    closeExportModal();
+                }
+            });
+
+            // Add event listeners to buttons using event delegation
+            datatableBody.addEventListener('click', function(event) {
+                const target = event.target.closest('button');
+                if (!target) return;
+
+                const row = target.closest('tr');
+                const type = row.dataset.type;
+                const id = row.dataset.id;
+                
+                if (target.classList.contains('btn-view-more')) {
+                     openModal('view', type, id);
+                } else if (target.textContent === 'Editar') {
+                     openModal('edit', type, id);
+                }
+            });
+
+             // --- USER CREATION FORM LOGIC ---
+             function initSelect2ForSchoolRow(row) {
+                const $row = $(row);
+                $row.find('.select2-project-school').select2({
+                    placeholder: "Selecione o(s) projeto(s)",
+                    allowClear: true
+                });
+                $row.find('.select2-disciplinas').select2({
+                    placeholder: "Selecione a(s) disciplina(s)",
+                    allowClear: true
+                });
+            }
+
+            function initSelect2InRow(row) {
+                const $row = $(row);
+
+                // Project select
+                $row.find('.select2-project').select2({
+                    placeholder: "Selecione um projeto",
+                    allowClear: true
+                });
+
+                // School select
+                $row.find('.select2-school').select2({
+                    placeholder: "Selecione uma escola",
+                    allowClear: true
+                });
+
+                // Etapa select
+                $row.find('.select2-etapa').select2({
+                    placeholder: "Selecione a etapa",
+                    allowClear: true
+                });
+
+                // Serie select
+                $row.find('.select2-serie').select2({
+                    placeholder: "Selecione a série",
+                    allowClear: true
+                });
+            }
+
+            // Init select2 for existing rows
+            $('#user-table-body tr').each(function() {
+                initSelect2InRow(this);
+            });
+
+            $('#school-table-body tr').each(function() {
+                initSelect2ForSchoolRow(this);
+            });
+
+            // Dynamic school loading based on project selection (delegated event)
+            $('#user-table-body').on('change', '.select2-project', function() {
+                const $projectSelect = $(this);
+                const $row = $projectSelect.closest('tr');
+                const $schoolSelect = $row.find('.select2-school');
+                const projectId = $projectSelect.val();
+
+                $schoolSelect.val(null).trigger('change'); // Clear previous selection
+
+                if (projectId) {
+                    $schoolSelect.prop('disabled', false);
+                    // Here you would typically make an AJAX call. We'll simulate it.
+                    // This is just for demonstration.
+                    const schools = {
+                        '1': [{ id: 'SCH001', text: 'Escola Municipal A' }, { id: 'SCH002', text: 'Escola Estadual B' }],
+                        '2': [{ id: 'SCH003', text: 'Colégio Aprender Mais' }, { id: 'SCH004', text: 'Instituto Saber' }]
+                    };
+                    $schoolSelect.empty().append('<option></option>').select2({
+                        data: schools[projectId] || [],
+                        placeholder: "Selecione uma escola",
+                        allowClear: true
+                    });
+                } else {
+                    $schoolSelect.prop('disabled', true);
+                    $schoolSelect.empty().append('<option></option>').select2({
+                        placeholder: "Selecione um projeto primeiro",
+                        allowClear: true
+                    });
+                }
+            });
+
+            // Initialize form elements
+            // Simulate login availability check
+            const loginInput = document.getElementById('student-login');
+            
+            loginInput.addEventListener('blur', function() {
+                if (this.value.trim() === '') {
+                    availabilityMessage.textContent = '';
+                    return;
+                }
+                
+                // Simulating AJAX request
+                availabilityMessage.textContent = 'Verificando disponibilidade...';
+                this.classList.remove('valid', 'invalid');
+                
+                setTimeout(() => {
+                    const takenLogins = ['joão.silva', 'maria.souza'];
+                    if (takenLogins.includes(this.value.toLowerCase())) {
+                        availabilityMessage.textContent = 'Login já está em uso';
+                        availabilityMessage.className = 'availability-message taken';
+                        this.classList.add('invalid');
+                    } else {
+                        availabilityMessage.textContent = 'Login disponível';
+                        availabilityMessage.className = 'availability-message available';
+                        this.classList.add('valid');
+                    }
+                }, 800);
+            });
+            
+            // Project selection enabling school select
+            const projectSelect = document.getElementById('student-project');
+            const schoolSelect = document.getElementById('student-school');
+            
+            projectSelect.addEventListener('change', function() {
+                if (this.value) {
+                    schoolSelect.disabled = false;
+                    // Simulate loading options
+                    schoolSelect.innerHTML = '<option value="">Carregando escolas...</option>';
+                    
+                    setTimeout(() => {
+                        schoolSelect.innerHTML = `
+                            <option value="1">Escola Municipal A</option>
+                            <option value="2">Escola Estadual B</option>
+                            <option value="3">Colégio Particular C</option>
+                        `;
+                    }, 700);
+                } else {
+                    schoolSelect.disabled = true;
+                }
+            });
+            
+            // Input validation indicators
+            const requiredInputs = document.querySelectorAll('input[required], select[required]');
+            
+            requiredInputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.value.trim() === '') {
+                        this.classList.add('invalid');
+                    } else {
+                        this.classList.add('valid');
+                        this.classList.remove('invalid');
+                    }
+                });
+            });
+
+            // Column sorting (simple implementation)
+            const thElements = document.querySelectorAll('.datatable th');
+            thElements.forEach(th => {
+                th.addEventListener('click', function() {
+                    const index = Array.from(this.parentElement.children).indexOf(this);
+                    const rows = Array.from(this.closest('table').querySelectorAll('tbody tr'));
+                    
+                    rows.sort((a, b) => {
+                        const aText = a.children[index].textContent;
+                        const bText = b.children[index].textContent;
+                        return aText.localeCompare(bText);
+                    });
+                    
+                    const tbody = this.closest('table').querySelector('tbody');
+                    rows.forEach(row => tbody.appendChild(row));
+                });
+            });
+        });
+    </script>
+</body>
+</html>
